@@ -8,7 +8,7 @@ public class CollisionManager : MonoBehaviour
 {
     public List<Checkpoint> checkpointList;
     private Checkpoint lastCheckpoint;
-    private Checkpoint nextCheckpoint;
+    public Checkpoint nextCheckpoint;
     private int checksCompleted;
     private CarMovement movement;
 

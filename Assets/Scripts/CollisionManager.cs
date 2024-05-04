@@ -32,10 +32,15 @@ public class CollisionManager : MonoBehaviour
     {
         if (collision.collider.tag.Equals("Player"))
         {
-            transform.position = ShiftRandomly(lastCheckpoint.transform.position);
-            transform.rotation = lastCheckpoint.transform.rotation;
-            if (movement) movement.Stop();
+            Respawn();
         }
+    }
+
+    public void Respawn()
+    {
+        transform.position = ShiftRandomly(lastCheckpoint.transform.position);
+        transform.rotation = lastCheckpoint.transform.rotation;
+        if (movement) movement.Stop();
     }
 
     private Vector3 ShiftRandomly(Vector3 position)

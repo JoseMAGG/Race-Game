@@ -4,10 +4,17 @@ using UnityEngine;
 
 public class CarMovement : MonoBehaviour
 {
+    public CollisionManager collisionManager;
     public Rigidbody rigidBody;
     public float force = 2f;
     public float torque = 2f;
     public float maxSpeed = 100f;
+
+    private int gear = 1;
+    private float speed;
+    private bool lockAcceleration;
+    private const int MAX_GEAR = 5;
+    private const int MIN_GEAR = 1;
 
     // Start is called before the first frame update
     void Start()
@@ -18,13 +25,26 @@ public class CarMovement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        ClampSpeed();
+        CheckSpeed();
 
-        if (Input.GetKey(KeyCode.UpArrow))
+        if (Input.GetKeyDown(KeyCode.Z))
+        {
+            IncreaseGear();
+        }
+        if (Input.GetKeyDown(KeyCode.X))
+        {
+            DecreaseGear();
+        }
+        if (Input.GetKey(KeyCode.C))
+        {
+            rigidBody.velocity *= 0.95f;
+        }
+
+        if (Input.GetKey(KeyCode.UpArrow) && !lockAcceleration)
         {
             rigidBody.AddForce(transform.forward * force);
         }
-        if (Input.GetKey(KeyCode.DownArrow))
+        if (Input.GetKey(KeyCode.DownArrow) && !lockAcceleration)
         {
             rigidBody.AddForce(transform.forward * -force);
         }
@@ -39,16 +59,43 @@ public class CarMovement : MonoBehaviour
         }
     }
 
-    private void ClampSpeed()
+    private void DecreaseGear()
     {
-        float speed = rigidBody.velocity.magnitude;
+        if (gear > MIN_GEAR)
+            gear--;
+    }
+
+    private void IncreaseGear()
+    {
+        if (gear < MAX_GEAR)
+            gear++;
+    }
+
+    private void CheckSpeed()
+    {
+        speed = rigidBody.velocity.magnitude;
         Vector3 normalizedVelocity = Vector3.Normalize(rigidBody.velocity);
-        float clampedSpeed = Mathf.Clamp(speed, -maxSpeed, maxSpeed);
-        rigidBody.velocity = normalizedVelocity * clampedSpeed;
+        float maxGearSpeed = maxSpeed * gear;
+        float minGearSpeed = maxSpeed * (gear - 1);
+        if (!lockAcceleration && (speed > maxGearSpeed * 1.2f || speed < minGearSpeed * 0.8f))
+            StartCoroutine(BreakEngine());
+        else
+            rigidBody.velocity = normalizedVelocity * speed;
+    }
+
+    private IEnumerator BreakEngine()
+    {
+        float clampedSpeed = Mathf.Clamp(speed, -maxSpeed, maxSpeed * gear);
+        rigidBody.velocity = Vector3.Normalize(rigidBody.velocity) * clampedSpeed;
+        lockAcceleration = true;
+        yield return new WaitForSeconds(3);
+        collisionManager.Respawn();
+        lockAcceleration = false;
     }
 
     public void Stop()
     {
         rigidBody.velocity = Vector3.zero;
+        gear = 1;
     }
 }

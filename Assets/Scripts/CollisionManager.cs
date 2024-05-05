@@ -1,3 +1,4 @@
+using Assets.Scripts;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -50,4 +51,8 @@ public class CollisionManager : MonoBehaviour
         return position;
     }
 
+    internal int GetDoneCheckpoints()
+    {
+        return checksCompleted;
+    }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,6 +6,7 @@ using UnityEngine;
 public class CarMovement : MonoBehaviour
 {
     public CollisionManager collisionManager;
+    public CarSoundManager soundManager;
     public Rigidbody rigidBody;
     public float force = 2f;
     public float torque = 2f;
@@ -16,13 +18,6 @@ public class CarMovement : MonoBehaviour
     private const int MAX_GEAR = 5;
     private const int MIN_GEAR = 1;
 
-    // Start is called before the first frame update
-    void Start()
-    {
-
-    }
-
-    // Update is called once per frame
     void Update()
     {
         CheckSpeed();
@@ -35,18 +30,19 @@ public class CarMovement : MonoBehaviour
         {
             DecreaseGear();
         }
-        if (Input.GetKey(KeyCode.C))
+        if (Input.GetKeyDown(KeyCode.C))
         {
             rigidBody.velocity *= 0.95f;
         }
 
         if (Input.GetKey(KeyCode.UpArrow) && !lockAcceleration)
         {
-            rigidBody.AddForce(transform.forward * force);
+            soundManager.PlayRunningSound();
+            rigidBody.AddForce(transform.forward * force * Time.deltaTime);
         }
         if (Input.GetKey(KeyCode.DownArrow) && !lockAcceleration)
         {
-            rigidBody.AddForce(transform.forward * -force);
+            rigidBody.AddForce(transform.forward * -force * Time.deltaTime);
         }
 
         if (Input.GetKey(KeyCode.LeftArrow))
@@ -85,6 +81,7 @@ public class CarMovement : MonoBehaviour
 
     private IEnumerator BreakEngine()
     {
+        soundManager.PlayOverloadSound();
         float clampedSpeed = Mathf.Clamp(speed, -maxSpeed, maxSpeed * gear);
         rigidBody.velocity = Vector3.Normalize(rigidBody.velocity) * clampedSpeed;
         lockAcceleration = true;
@@ -97,5 +94,27 @@ public class CarMovement : MonoBehaviour
     {
         rigidBody.velocity = Vector3.zero;
         gear = 1;
+    }
+
+    internal int GetDoneCheckpointCount()
+    {
+        return collisionManager.GetDoneCheckpoints();
+    }
+
+    internal float GetSpeed()
+    {
+        return speed;
+    }
+
+    internal int GetGear()
+    {
+        return gear;
+    }
+
+    internal float GetStress()
+    {
+        float maxGearSpeed = maxSpeed * gear * 1.2f;
+        float minGearSpeed = maxSpeed * (gear - 1) * 0.8f;
+        return (speed - minGearSpeed) / (maxGearSpeed - minGearSpeed);
     }
 }

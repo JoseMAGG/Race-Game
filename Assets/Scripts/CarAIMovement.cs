@@ -16,11 +16,20 @@ public class CarAIMovement : MonoBehaviour
     void Start()
     {
     }
+    internal int GetDoneCheckpointCount()
+    {
+        return collisionManager.GetDoneCheckpoints();
+    }
 
     // Update is called once per frame
     void Update()
     {
         goal = collisionManager.nextCheckpoint;
         agent.destination = goal.transform.position;
+    }
+
+    public void SetMovementEnabled(bool enabled)
+    {
+        agent.isStopped = !enabled;
     }
 }
